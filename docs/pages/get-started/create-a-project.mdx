@@ -1,24 +1,186 @@
----
-title: Create a project
-description: Learn how to create a new Expo project.
-hideTOC: true
----
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 
-import { Terminal } from '~/ui/components/Snippet';
+export default function App() {
+  const [markedDays, setMarkedDays] = useState([1, 5, 10, 15, 20, 25]);
+  const totalDays = 31;
+  const monthName = "January";
+  const year = 2024;
 
-System requirements:
+  const toggleDay = (day) => {
+    if (markedDays.includes(day)) {
+      setMarkedDays(markedDays.filter(d => d !== day));
+    } else {
+      setMarkedDays([...markedDays, day]);
+    }
+  };
 
-- [Node.js (LTS)](https://nodejs.org/en/).
-- macOS, Windows (Powershell and [WSL 2](https://expo.fyi/wsl)), and Linux are supported.
+  const clearAll = () => {
+    Alert.alert(
+      'Clear All Days',
+      'Are you sure you want to deselect all days?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear All',
+          onPress: () => {
+            const oldDays = [...markedDays];
+            setMarkedDays([]);
+            
+            // Show undo alert
+            setTimeout(() => {
+              Alert.alert(
+                'Undo Available',
+                'You can undo this action',
+                [
+                  {
+                    text: 'Undo',
+                    onPress: () => setMarkedDays(oldDays)
+                  },
+                  {
+                    text: 'OK',
+                    style: 'default'
+                  }
+                ]
+              );
+            }, 100);
+          }
+        }
+      ]
+    );
+  };
 
-We recommend starting with the default project created by `create-expo-app`. The default project includes example code to help you get started.
+  // Create days grid
+  const days = [];
+  for (let day = 1; day <= totalDays; day++) {
+    const isMarked = markedDays.includes(day);
+    
+    days.push(
+      <TouchableOpacity
+        key={day}
+        style={[
+          styles.dayButton,
+          isMarked ? styles.dayMarked : styles.dayNormal
+        ]}
+        onPress={() => toggleDay(day)}
+      >
+        <Text style={styles.dayText}>{day}</Text>
+        {isMarked && <Text style={styles.checkMark}>✓</Text>}
+      </TouchableOpacity>
+    );
+  }
 
-To create a new project, run the following command:
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.title}>📅 Day Counter</Text>
+        <Text style={styles.subtitle}>{monthName} {year}</Text>
+      </View>
 
-<Terminal cmd={['$ npx create-expo-app@latest']} />
+      {/* Days Grid */}
+      <View style={styles.daysGrid}>
+        {days}
+      </View>
 
-> You can choose a different template by adding the [`--template` option](/more/create-expo/#--template).
+      {/* Counter */}
+      <View style={styles.counter}>
+        <Text style={styles.counterText}>
+          Completed: {markedDays.length} / {totalDays}
+        </Text>
+      </View>
 
-## Next step
+      {/* Clear Button */}
+      <TouchableOpacity style={styles.clearButton} onPress={clearAll}>
+        <Text style={styles.clearButtonText}>🗑️ Deselect All</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
 
-You have a project. Now it's time to set up your development environment so that you can start developing.
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#1a1a2e',
+    paddingTop: 50,
+    paddingHorizontal: 15,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#ffb9ff',
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 22,
+    color: '#aaa',
+  },
+  daysGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 10,
+    marginBottom: 20,
+  },
+  dayButton: {
+    width: 70,
+    height: 70,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 5,
+    position: 'relative',
+  },
+  dayNormal: {
+    backgroundColor: '#2d3047',
+    borderWidth: 2,
+    borderColor: '#444',
+  },
+  dayMarked: {
+    backgroundColor: '#2d3047',
+    borderWidth: 3,
+    borderColor: '#4CAF50',
+  },
+  dayText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  checkMark: {
+    position: 'absolute',
+    top: 5,
+    right: 8,
+    color: '#4CAF50',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  counter: {
+    backgroundColor: '#2d3047',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginVertical: 20,
+    borderWidth: 2,
+    borderColor: '#0f99f0',
+  },
+  counterText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#0f99f0',
+  },
+  clearButton: {
+    backgroundColor: '#e74c3c',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  clearButtonText: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+});
